@@ -1,0 +1,28 @@
+# NOTE: This file is modified by the make_local_yml.sh
+# script. Only modify compose_template.yml, unless you
+# don't mind risking your changes.
+
+web:
+  image: mos_dev:ruby2.2
+  ports:
+    - "localhost:8081:80"
+  # volumes:
+  #   - /u/config_files/mwri-users:/u/config_files
+  links:
+    - mysql_home:db_mysql
+  # extra_hosts:
+  #   - "cas-docker.mwri.loc:10.0.7.61"
+  #   - "mwriusers-docker.mwri.loc:127.0.0.1"
+  environment:
+    #   # Allow GBP symbol as env variable
+     - LANG=C.UTF-8
+
+mysql_home:
+  image: mysql:5.6.27
+  ports:
+    - "localhost:3310:3306"
+  volumes:
+    - /u/data_docker/mysql_home:/var/lib/mysql
+  environment:
+    - MYSQL_ROOT_PASSWORD=blah
+
