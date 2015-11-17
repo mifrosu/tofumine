@@ -56,8 +56,8 @@ RUN rm /etc/nginx/sites-available/default
 
 ## Container directory for volume link
 RUN mkdir /u
-RUN mkdir -p /home/app/app_files && chown app:app /home/app/app_files
-WORKDIR /home/app/app_files
+RUN ln -s /u/projects/tofumine /home/app/tofumine
+# RUN mkdir -p /home/app/app_files && chown app:app /home/app/app_files
 
 RUN echo "gem: --no-ri --no-rdoc" > ~/.gemrc
 RUN gem install bundler
@@ -69,6 +69,8 @@ RUN gem install bundler
 
 ## the image source
 # COPY ./app_files /home/app/app_files/
+
+WORKDIR /home/app/app_files
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

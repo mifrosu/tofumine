@@ -1,0 +1,4 @@
+JBuilder - renders JSON
+
+Express (Node.js) - for delivering the app
+Webpack (Node.js) - JS compilation and serving
