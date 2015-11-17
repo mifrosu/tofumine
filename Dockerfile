@@ -56,7 +56,6 @@ COPY tofumine.conf /etc/nginx/sites-enabled/tofumine.conf
 
 ## Container directory for volume link
 RUN mkdir /u
-RUN ln -s /u/tofumine /home/app/tofumine
 # RUN mkdir -p /home/app/app_files && chown app:app /home/app/app_files
 
 RUN echo "gem: --no-ri --no-rdoc" > ~/.gemrc
@@ -70,7 +69,9 @@ RUN gem install bundler
 ## the image source
 # COPY ./app_files /home/app/app_files/
 
-WORKDIR /home/app/tofumine
+RUN useradd -s /bin/bash -u1000 rubyapps
+
+WORKDIR /u/tofumine
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
