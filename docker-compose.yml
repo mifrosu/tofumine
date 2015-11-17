@@ -5,11 +5,11 @@
 web:
   image: mos_dev:ruby2.2
   ports:
-    - "localhost:8081:80"
-  # volumes:
-  #   - /u/config_files/mwri-users:/u/config_files
+    - "localhost:8080:80"
+  volumes:
+    - /u/projects/tofumine:/u/tofumine
   links:
-    - mysql_home:db_mysql
+    - projmysql:db_mysql
   # extra_hosts:
   #   - "cas-docker.mwri.loc:10.0.7.61"
   #   - "mwriusers-docker.mwri.loc:127.0.0.1"
@@ -17,7 +17,7 @@ web:
     #   # Allow GBP symbol as env variable
      - LANG=C.UTF-8
 
-mysql_home:
+projmysql:
   image: mysql:5.6.27
   ports:
     - "localhost:3310:3306"

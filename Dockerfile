@@ -41,22 +41,22 @@ ENV RAILS_ENV="development"
 
 RUN locale-gen en_GB.UTF-8
 ENV LANG en_GB.UTF-8
-ENV LANG en_GB:en
+ENV LANGUAGE en_GB:en
 
 RUN apt-get update && apt-get install -y \
  mysql-client git-core curl zlib1g-dev build-essential libssl-dev \
- libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev \
+ libreadline-dev libyaml-dev libxml2-dev \
  libxslt1-dev libcurl4-openssl-dev python-software-properties libffi-dev \
  nodejs
 
 ## enable the local nginx instance
 RUN rm -f /etc/service/nginx/down
 RUN rm /etc/nginx/sites-available/default
-# COPY app.conf /etc/nginx/sites-enabled/app.conf
+COPY tofumine.conf /etc/nginx/sites-enabled/tofumine.conf
 
 ## Container directory for volume link
 RUN mkdir /u
-RUN ln -s /u/projects/tofumine /home/app/tofumine
+RUN ln -s /u/tofumine /home/app/tofumine
 # RUN mkdir -p /home/app/app_files && chown app:app /home/app/app_files
 
 RUN echo "gem: --no-ri --no-rdoc" > ~/.gemrc
@@ -70,7 +70,7 @@ RUN gem install bundler
 ## the image source
 # COPY ./app_files /home/app/app_files/
 
-WORKDIR /home/app/app_files
+WORKDIR /home/app/tofumine
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
