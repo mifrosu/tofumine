@@ -49,17 +49,14 @@ RUN apt-get update && apt-get install -y \
  libxslt1-dev libcurl4-openssl-dev python-software-properties libffi-dev \
  nodejs
 
-## enable the local nginx instance
-RUN rm -f /etc/service/nginx/down
-RUN rm /etc/nginx/sites-available/default
-COPY tofumine.conf /etc/nginx/sites-enabled/tofumine.conf
-
 ## Container directory for volume link
 RUN mkdir /u
-# RUN mkdir -p /home/app/app_files && chown app:app /home/app/app_files
 
-RUN echo "gem: --no-ri --no-rdoc" > ~/.gemrc
-RUN gem install bundler
+## enable the local nginx instance
+RUN rm -f /etc/service/nginx/down && rm /etc/nginx/sites-available/default
+RUN ln -s  /u/config/tofumine.conf /etc/nginx/sites-enabled/tofumine.conf
+
+RUN echo "gem: --no-ri --no-rdoc" > ~/.gemrc && gem install bundler
 
 ## the Gemfiles for caching:
 # COPY app_files/Gemfile /home/app/app_files

@@ -8,6 +8,7 @@ web:
     - "localhost:8080:80"
   volumes:
     - /u/projects/tofumine:/u/tofumine
+    - /u/projects/local_config/tofumine:/u/config
   links:
     - projmysql:db_mysql
   # extra_hosts:
