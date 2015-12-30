@@ -3,12 +3,12 @@
 # don't mind risking your changes.
 
 web:
-  image: mos_dev:ruby2.2
+  image: mos_dev_react_tofu:ruby2.2
   ports:
     - "localhost:8080:80"
   volumes:
     - /u/projects/tofumine:/u/tofumine
-    - /u/projects/local_config/tofumine:/u/config
+    - /u/projects/local_config/tofumine_config:/u/config
   links:
     - projmysql:db_mysql
   # extra_hosts:

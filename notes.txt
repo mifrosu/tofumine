@@ -1,11 +1,9 @@
-JBuilder - renders JSON
-
-Express (Node.js) - for delivering the app
-Webpack (Node.js) - JS compilation and serving
+ReactJS and Rails
 
 ---
 Docker note:
-Using the Phusion Passenger image, we need to create our own user in the Dockerfile,
+Using the Phusion Passenger image, we need to create our own user in the
+Dockerfile,
 and specify that it is used in the nginx config:
 
 RUN useradd -s /bin/bash -u1000 rubyapps
@@ -13,3 +11,78 @@ RUN useradd -s /bin/bash -u1000 rubyapps
 In the container, we can then install the gems with
 bundle install --path vendor/bundle
 ---
+
+Architectural Overview
+----------------------
+
+Object-Relational Mapping/Active Record
+
+Rails application:
+
+Web request -> View + Controller + Model
+
+# Our React application View layer:
+
+Web request -> JSON API + HTML + CSS/JavaScript
+The JSON API returns data. We serve HTML, CSS, and JS
+
+# View technologies:
+
+JBuilder  --- RoR method to generate JSON
+ERB       --- generate HTML
+Sprockets --- compiles JS to serve via the asset pipeline
+
+We will also use Babel ES6 to transpile into JS.
+
+Isomorphic refactor to serve both client and server side.
+
+Express (Node.js) - for delivering the app
+Webpack (Node.js) - JS compilation and serving
+
+--------------------
+
+002 Scaffolding the Rails Application
+-------------------------------------
+
+# Create the application
+rails new <application_name>
+
+# We remove spring, coffeescript, jquery and turbolinks from the Gemfile
+
+# We add the following gems:
+gem 'ancestry'    # quickly and easily model trees
+gem 'rails_admin' # helps build admin interface to add/remove records
+
+# Let's create a migration
+bundle exec rails g migration create_restaurants
+
+# We'll edit the migration file:
+
+class CreateRestaurants < ActiveRecord::Migration
+  def change
+    create_table :restaurants do |t|
+      t.string :name
+      t.string :address
+      t.text :description
+      t.timestamps
+    end
+  end
+end
+
+# and run the migration:
+bundle exec rake db:migrate
+
+# Next, we need to create the model
+class Restaurant < ActiveRecord::Base
+end
+
+# We can then use the rails_admin generator to make some forms for us:
+bundle exec rails g rails_admin:install
+
+# This adds rails_admin as an engine for us. After restarting the rails
+# server, we can access the admin page:
+localhost:3000/admin
+
+
+
+

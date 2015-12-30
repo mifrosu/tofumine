@@ -13,7 +13,6 @@ FROM phusion/passenger-ruby22:0.9.17
 #FROM phusion/passenger-customizable:<VERSION>
 
 # Set correct environment variables.
-ENV HOME /root
 
 # Use baseimage-docker's init process.
 CMD ["/sbin/my_init"]
@@ -36,7 +35,6 @@ CMD ["/sbin/my_init"]
 
 # ...put your own build instructions here...
 
-
 ENV RAILS_ENV="development"
 
 RUN locale-gen en_GB.UTF-8
@@ -50,23 +48,26 @@ RUN apt-get update && apt-get install -y \
  nodejs
 
 ## Container directory for volume link
-RUN mkdir /u
+RUN mkdir /u && \
+mkdir -p /etc/my_init.d
 
 ## enable the local nginx instance
-RUN rm -f /etc/service/nginx/down && rm /etc/nginx/sites-available/default
+RUN rm -f /etc/service/nginx/down && rm /etc/nginx/sites-enabled/default
 RUN ln -s  /u/config/tofumine.conf /etc/nginx/sites-enabled/tofumine.conf
+RUN ln -s  /u/config/setup.sh /etc/my_init.d/setup
 
 RUN echo "gem: --no-ri --no-rdoc" > ~/.gemrc && gem install bundler
 
 ## the Gemfiles for caching:
 # COPY app_files/Gemfile /home/app/app_files
 # COPY app_files/Gemfile.lock /home/app/app_files
-# RUN gem install bundler && bundle install --jobs 20 --retry 5
+# RUN bundle install --local --jobs 20 --retry 5
 
 ## the image source
 # COPY ./app_files /home/app/app_files/
 
 RUN useradd -s /bin/bash -u1000 rubyapps
+ENV HOME /home/rubyapps
 
 WORKDIR /u/tofumine
 
