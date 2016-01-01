@@ -131,3 +131,47 @@ Comment.find(1).children
 
 # and the path:
 Comment.find(1).path
+
+------------------------------------------
+# After adding a basic route, view and controller we add foundation-rails
+gem "foundation-rails"
+
+# We will now use the foundation assets
+rails g foundation:install
+
+# we will be prompted to overwrite application.html.erb (fine, we haven't
+# changed it anyway)
+
+# We will modify the global application view:
+vim app/views/layouts/application.html.erb
+
+That file features a yield statement, where the controller action is
+rendered:
+
+<%= yield %>
+
+Editing this file allows us to customize the application look and feel:
+
+  <body>
+    <nav class="top-bar foundation-bar" data-topbar>
+      <ul class="title-area">
+        <li class="name">
+          <h1><a href="/">Tofumine Restaurants</a></h1>
+        </li>
+      </ul>
+      <section class="top-bar-section">
+        <ul class="right">
+          <li>
+            <%= link_to "manage restaurants", "/admin" %>
+          </li>
+        </ul>
+      </section>
+    </nav>
+    <div class="row">
+      <div class="large-12 columns">
+
+        <%= yield %>
+
+      </div>
+    </div>
+  </body>
