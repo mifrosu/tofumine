@@ -83,6 +83,51 @@ bundle exec rails g rails_admin:install
 # server, we can access the admin page:
 localhost:3000/admin
 
+# We add a Comment model, with a belongs_to Restaurant relationship:
 
+class CreateComments < ActiveRecord::Migration
+  def change
+    create_table :comments do |t|
+      t.string :author
+      t.text :body
+      t.integer :rank
+      t.belongs_to :restaurant
+      t.timestamps
+    end
+    add_index :comments, :restaurant_id
+  end
+end
 
+# The following lines are added to restaurant.rb and comment.rb respectively
+# has_many :comments
+# belongs_to :restaurant
 
+# We are going to use the ancestry gem to set comments up as trees
+# for this, we need a migration with index:
+
+bundle exec rails g migration add_ancestry_to_comments
+
+class AddAncestryToComments < ActiveRecord::Migration
+  def change
+    add_column :comments, :ancestry, :string
+    add_index :comments, :ancestry
+  end
+end
+
+# We need to modify the comments model for use with ancestry:
+
+class Comment < ActiveRecord::Base
+  belongs_to :restaurant
+  validates :restaurant, presence: true
+  has_ancestry
+end
+
+# In a Rails console, we can create a child comment:
+Comment.create(author: "Jane", body: "Quite right!", parent: Comment.find(1),
+ restaurant_id: 1)
+
+# And we can inspect the parent's children:
+Comment.find(1).children
+
+# and the path:
+Comment.find(1).path

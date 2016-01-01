@@ -11,7 +11,20 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151230205141) do
+ActiveRecord::Schema.define(version: 20151231185810) do
+
+  create_table "comments", force: :cascade do |t|
+    t.string   "author",        limit: 255
+    t.text     "body",          limit: 65535
+    t.integer  "rank",          limit: 4
+    t.integer  "restaurant_id", limit: 4
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.string   "ancestry",      limit: 255
+  end
+
+  add_index "comments", ["ancestry"], name: "index_comments_on_ancestry", using: :btree
+  add_index "comments", ["restaurant_id"], name: "index_comments_on_restaurant_id", using: :btree
 
   create_table "restaurants", force: :cascade do |t|
     t.string   "name",        limit: 255
