@@ -175,3 +175,161 @@ Editing this file allows us to customize the application look and feel:
       </div>
     </div>
   </body>
+
+-------------------------------------------
+Building a React Component Inside Rails
+-------------------------------------------
+
+We use
+
+gem "react-rails"
+
+After bundle install, we need to restart the rails server, and to run
+the react-rails generator:
+
+rails g react:install
+
+This creates:
+
+app/assets/javascripts/components
+app/assets/javascripts/components.js
+
+and it also inserts lines into app/assets/javascripts/application.js
+
+//= require react
+//= require react_ujs
+//= require components
+
+# So, let's create our first component (think of it as a class)
+# app/assets/javascripts/components/comment.js.jsx
+
+var Comment = React.createClass({   // create a JS pseudoclass
+  propTypes: {                      // attribute to declare expected input
+    author: React.PropTypes.string,
+    body: React.PropTypes.string,
+    rank: React.PropTypes.number
+  },
+
+  render: function() {              // this is required
+    return(
+      <div>
+        <div> Author: {this.props.author}</div>
+        <div> Body: {this.props.body}</div>
+        <div> Rank: {this.props.rank}</div>
+      </div>
+    );
+  }
+});
+
+JSX is a JavaScript pre-processor for markup used by the ReactJS community.
+
+We use React.createClass to create a JS pseudoclass
+
+It is good practice to use a propTypes attribute to indicate expected input to
+other component users.
+
+We MUST declare a render function. JSX allows us to incorporate JS into the template.
+
+The React-Rails helper allows us to use components in view ERB files:
+
+<%= react_component('Comment', {author: 'Mr X', body: "Splendid!", rank: 5}) %>
+
+
+-------------------------------------------------------
+007 Preparing JSON Data for ReactJS
+-------------------------------------------------------
+
+Our Restaurant model has many comments.
+
+While we could iterate over the comments and pass them to our new react
+component, we would like to have a dynamically generated set of comments;
+in that case, we need another React component, which we will call
+CommentList.
+
+# app/views/restaurants/show.html.erb
+<div class="row">
+  <h1><%= @restaurant.name %></h1>
+</div>
+<div class="row">
+  <div class="columns medium-6">
+    <p>
+      <%= @restaurant.description %>
+    </p>
+  </div>
+  <div class="columns medium-6">
+    <h3>Comments</h3>
+    <%= react_component('CommentList', { comments: raw( render( template: 'comments/index.json.jbuilder')) }) %>
+  </div>
+</div>
+
+We need to be able to pass data to the new React component. The component
+will not be able to understand Rails @comments variable directly; we will
+need to pass JSON data instead. We will use JBuilder to make the JSON.
+
+We also need to tell rails that we are using raw JSON, so that it is not
+escaped. We render a json.jbuilder template using the @comments variable,
+together with a partial: _comment.json.jbuilder.
+
+# app/views/comments/index.json.jbuilder
+json.array! @comments, partial: 'comments/comment', as: :comment
+
+# app/views/comments/_comment.json.jbuilder
+json.(comment, :id, :body, :author, :rank)
+
+If we inspect the page source now, we will see any comments rendered as JSON.
+
+-------------------------------------------------------
+008 Rendering Ruby Models in React
+-------------------------------------------------------
+
+Next we need to implement the CommentList component.
+
+First attempt; NOTE that we need to JSON.parse the comments props to use map:
+
+# app/assets/javascripts/components/comment_list.js.jsx
+var CommentList = React.createClass({
+  render: function() {
+    return (
+      <div>
+        {JSON.parse(this.props.comments).map(function(comment) {
+          return (<div> {comment.author} </div>);
+        })}
+    );
+  }
+});
+
+
+Let's return our existing Comment component, rather than the divs.
+
+# app/assets/javascripts/components/comment_list.js.jsx
+var CommentList = React.createClass({
+
+  render: function() {
+    return (
+      <div>
+        {JSON.parse(this.props.comments).map(function(comment) {
+          return (<Comment key={comment.id} rank={comment.rank} body={comment.body} author={comment.author} />);
+        })}
+      </div>
+    );
+  }
+});
+
+This is quite verbose; we can use a destructor to simplify:
+
+# app/assets/javascripts/components/comment_list.js.jsx
+var CommentList = React.createClass({
+
+  render: function() {
+    return (
+      <div>
+        {JSON.parse(this.props.comments).map(function(comment) {
+          return (<Comment key={comment.id} {... comment} />);
+        })}
+      </div>
+    );
+  }
+});
+
+The {... comment} destructor takes the comment and maps it into the comment
+component. This is analogous to a Ruby splat.

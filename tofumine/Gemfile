@@ -21,6 +21,7 @@ gem 'jbuilder', '~> 2.0'
 gem 'ancestry'          # quickly and easily model trees
 gem 'rails_admin'       # quickly build interface to add/remove records
 gem 'foundation-rails'
+gem 'react-rails'
 
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
