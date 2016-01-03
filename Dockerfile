@@ -36,6 +36,7 @@ CMD ["/sbin/my_init"]
 # ...put your own build instructions here...
 
 ENV RAILS_ENV="development"
+ENV TERM=xterm
 
 RUN locale-gen en_GB.UTF-8
 ENV LANG en_GB.UTF-8
