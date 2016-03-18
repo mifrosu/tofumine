@@ -17,23 +17,16 @@ FROM phusion/passenger-ruby22:0.9.17
 # Use baseimage-docker's init process.
 CMD ["/sbin/my_init"]
 
-# If you're using the 'customizable' variant, you need to explicitly opt-in
-# for features. Uncomment the features you want:
-#
-#   Build system and git.
-#RUN /pd_build/utilities.sh
-#   Ruby support.
-#RUN /pd_build/ruby1.9.sh
-#RUN /pd_build/ruby2.0.sh
-#RUN /pd_build/ruby2.1.sh
-#RUN /pd_build/ruby2.2.sh
-#RUN /pd_build/jruby9.0.sh
-#   Python support.
-#RUN /pd_build/python.sh
-#   Node.js and Meteor support.
-#RUN /pd_build/nodejs.sh
-
 # ...put your own build instructions here...
+
+# Replace node with node 5.x
+# COPY nodesource.gpg.key /tmp/
+# RUN apt-key add /tmp/nodesource.gpg.key
+RUN echo 'deb https://deb.nodesource.com/node_5.x trusty main' > /etc/apt/sources.list.d/nodesource.list
+RUN echo 'deb-src https://deb.nodesource.com/node_5.x trusty main' >> /etc/apt/sources.list.d/nodesource.list
+
+# Upgrade the packages, keep old config
+RUN apt-get update && apt-get upgrade -y -o Dpkg::Options::="--force-confold"
 
 ENV RAILS_ENV="development"
 ENV TERM=xterm
@@ -45,8 +38,7 @@ ENV LANGUAGE en_GB:en
 RUN apt-get update && apt-get install -y \
  mysql-client git-core curl zlib1g-dev build-essential libssl-dev \
  libreadline-dev libyaml-dev libxml2-dev \
- libxslt1-dev libcurl4-openssl-dev python-software-properties libffi-dev \
- nodejs
+ libxslt1-dev libcurl4-openssl-dev python-software-properties libffi-dev
 
 ## Container directory for volume link
 RUN mkdir /u && \
@@ -67,8 +59,7 @@ RUN echo "gem: --no-ri --no-rdoc" > ~/.gemrc && gem install bundler
 ## the image source
 # COPY ./app_files /home/app/app_files/
 
-RUN useradd -s /bin/bash -u1000 rubyapps
-ENV HOME /home/rubyapps
+RUN adduser --uid 1000 --disabled-password rubyapps
 
 WORKDIR /u/tofumine
 
