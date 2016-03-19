@@ -6,7 +6,7 @@ Using the Phusion Passenger image, we need to create our own user in the
 Dockerfile,
 and specify that it is used in the nginx config:
 
-RUN useradd -s /bin/bash -u1000 rubyapps
+RUN adduser --uid 1000 --disabled-password rubyapps
 
 In the container, we can then install the gems with
 bundle install --path vendor/bundle
@@ -48,6 +48,7 @@ Webpack (Node.js) - JS compilation and serving
 rails new <application_name>
 
 # We remove spring, coffeescript, jquery and turbolinks from the Gemfile
+# and the turbolinks reference from app/assets/javascripts/application.js
 
 # We add the following gems:
 gem 'ancestry'    # quickly and easily model trees
@@ -84,6 +85,7 @@ bundle exec rails g rails_admin:install
 localhost:3000/admin
 
 # We add a Comment model, with a belongs_to Restaurant relationship:
+$ bundle exec rails g migration create_comments
 
 class CreateComments < ActiveRecord::Migration
   def change
@@ -133,13 +135,22 @@ Comment.find(1).children
 Comment.find(1).path
 
 ------------------------------------------
-# After adding a basic route, view and controller we add foundation-rails
+# We add some routing:
+Rails.application.routes.draw do
+  mount RailsAdmin::Engine => '/admin', as: 'rails_admin'
+  resources :restaurants
+  # set the root path
+  root 'restaurants#index'
+end
+
+# After adding the basic route, view and controller we add foundation-rails
+# to get some style (from the Zurb Foundation project)
 gem "foundation-rails"
 
 # We will now use the foundation assets
 rails g foundation:install
 
-# we will be prompted to overwrite application.html.erb (fine, we haven't
+# we will be prompted to overwrite application.html.erb (fine, we  haven't
 # changed it anyway)
 
 # We will modify the global application view:
@@ -201,6 +212,9 @@ and it also inserts lines into app/assets/javascripts/application.js
 //= require components
 
 # So, let's create our first component (think of it as a class)
+# The jsx suffix tells sprockets to run the JS through a JSX preprocessor.
+# The JSX allows us to create templates with JS
+# Principle in the React community: separate concerns not technologies.
 # app/assets/javascripts/components/comment.js.jsx
 
 var Comment = React.createClass({   // create a JS pseudoclass
@@ -232,7 +246,7 @@ We MUST declare a render function. JSX allows us to incorporate JS into the temp
 
 The React-Rails helper allows us to use components in view ERB files:
 
-<%= react_component('Comment', {author: 'Mr X', body: "Splendid!", rank: 5}) %>
+<%= react_component("Comment", {author: "Mr X", body: "Splendid!", rank: 5}) %>
 
 
 -------------------------------------------------------
@@ -333,3 +347,60 @@ var CommentList = React.createClass({
 
 The {... comment} destructor takes the comment and maps it into the comment
 component. This is analogous to a Ruby splat.
+
+
+-------------------------------------------------------
+010 Architectural Overview of Flux
+-------------------------------------------------------
+
+Up until now we have been using the Rails MVC pattern, extended with
+React components.
+
+The React components could be nested:
+
+CommentList > Comment > CommentForm
+
+This will present certain challenges.
+We will have state:
+* when we create a comment, we impact CommentList.
+* we will have to send a message back to the Rails stack, which will
+  in turn update our components.
+* we will end up with a series of components that have to keep track of
+  different bits of data: state.
+
+We will use the Flux pattern to handle this:
+
+Flux is about stores, components, and actions.
+
+The components:
+
+CommentSection
+> CommentForm
+> CommentList
+  > Comment
+    > CommentForm (for responding to comments)
+
+The Flux pattern will add:
+Comment Store
+Comment Actions
+
+The Comment Store is the central repository on the browser for all the
+comments on the page. The components will no longer have to manage the
+comments they have to render: they will use the store as the single source
+of truth.
+
+The Actions serve as a repository of messages that can be sent to the
+application from the view or from the server.
+
+In the Flux architecture, the data flow down:
+- Store pushes data to React Components
+- React Components trigger Actions
+- Actions update the Store
+
+The Store maintains the application state.
+
+The server communicates with the Flux application through the actions.
+
+There is a singe central Dispatcher in a Flux application, which sits between
+Actions and the Store, and it is the Dispatcher (and only the Dispatcher) that
+changes the Store.
