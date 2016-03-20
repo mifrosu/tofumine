@@ -2,7 +2,7 @@
 // These act as a registry of the types of messages our
 // application will support. Note this is controversial.
 //
-var Contstants = {
+var Constants = {
   CHANGE_EVENT: 'change',
   ADD_COMMENT: 'comments.add'
 }
@@ -23,7 +23,7 @@ var Store = new _.extend({}, EventEmitter.prototype, {
 
   // Flux boilerplate :
   addChangeListener: function(callback) {
-    this.on(Contstants.CHANGE_EVENT, callback);
+    this.on(Constants.CHANGE_EVENT, callback);
   },
 
   removeChangeListener: function(callback) {
@@ -37,15 +37,28 @@ var Store = new _.extend({}, EventEmitter.prototype, {
 });
 
 // Declare our single Dispatcher
-var AppDispatcher = new FluxDispatcher();
+var AppDispatcher = new Flux.Dispatcher();
 
 AppDispatcher.register(function(payload) {
   var action = payload.actionType;
   switch(action) {
     case Constants.ADD_COMMENT:
       Store.addComment(payload.comment);
+      Store.emitChange();
       break;
     default:
       // NO-OP
+  }
+});
+
+// Actions
+
+// using lodash to create a new class
+var Actions = new _.extend({}, {
+  addComment: function(params) {
+    AppDispatcher.dispatch({
+      actionType: Constants.ADD_COMMENT,
+      comment: params
+    });
   }
 });
