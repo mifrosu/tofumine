@@ -38,7 +38,8 @@ ENV LANGUAGE en_GB:en
 RUN apt-get update && apt-get install -y \
  mysql-client git-core curl zlib1g-dev build-essential libssl-dev \
  libreadline-dev libyaml-dev libxml2-dev \
- libxslt1-dev libcurl4-openssl-dev python-software-properties libffi-dev
+ libxslt1-dev libcurl4-openssl-dev python-software-properties libffi-dev && \
+apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ## Container directory for volume link
 RUN mkdir /u && \
@@ -59,9 +60,8 @@ RUN echo "gem: --no-ri --no-rdoc" > ~/.gemrc && gem install bundler
 ## the image source
 # COPY ./app_files /home/app/app_files/
 
-RUN adduser --uid 1000 --disabled-password rubyapps
+RUN useradd --uid 1000 rubyapps
 
 WORKDIR /u/tofumine
 
 # Clean up APT when done.
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

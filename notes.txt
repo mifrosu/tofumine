@@ -37,7 +37,7 @@ We will also use Babel ES6 to transpile into JS.
 Isomorphic refactor to serve both client and server side.
 
 Express (Node.js) - for delivering the app
-Webpack (Node.js) - JS compilation and serving
+Webpack (Node.js) - compiles and serves JS in multiple places
 
 --------------------
 
@@ -124,7 +124,8 @@ class Comment < ActiveRecord::Base
   has_ancestry
 end
 
-# In a Rails console, we can create a child comment:
+# In a Rails console, we can create a child comment (note our validation
+# requires a restaurant_id):
 Comment.create(author: "Jane", body: "Quite right!", parent: Comment.find(1),
  restaurant_id: 1)
 
