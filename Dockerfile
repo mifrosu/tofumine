@@ -52,14 +52,7 @@ RUN ln -s  /u/config/setup.sh /etc/my_init.d/setup
 
 RUN echo "gem: --no-ri --no-rdoc" > ~/.gemrc && gem install bundler
 
-## the Gemfiles for caching:
-# COPY app_files/Gemfile /home/app/app_files
-# COPY app_files/Gemfile.lock /home/app/app_files
-# RUN bundle install --local --jobs 20 --retry 5
-
-## the image source
-# COPY ./app_files /home/app/app_files/
-
+# Add the development user
 RUN useradd --uid 1000 rubyapps
 
 WORKDIR /u/tofumine
