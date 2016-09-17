@@ -393,24 +393,37 @@ of truth.
 The Actions serve as a repository of messages that can be sent to the
 application from the view or from the server.
 
-In the Flux architecture, the data flow down:
+In the Flux architecture, the data flows in one direction:
 - Store pushes data to React Components
 - React Components trigger Actions
 - Actions update the Store
 
+    Store ----> React Components
+      ^               |
+      |               |
+ (Dispatcher)         |
+      |               |
+    Actions  <---------
+      ^
+      |
+      v
+    Server (e.g. Rails)
+
 The Store maintains the application state.
 
-The server communicates with the Flux application through the actions.
+The server communicates with the Flux application through the *actions*.
 
 There is a singe central Dispatcher in a Flux application, which sits between
 Actions and the Store, and it is the Dispatcher (and only the Dispatcher) that
-changes the Store.
+changes the Store. We thus have only one way to mutate the application's state,
+and that is through the actions.
 
 
 -------------------------------------------------------
 011 A Simple Flux Store
 -------------------------------------------------------
 
+Here we will focus more on the client side.
 Client-side components
 
 We add the flux-rails-assets gem to our Gemfile
@@ -428,11 +441,16 @@ app/assets/javascripts/application.js after the react entries:
 //= require react_ujs
 //= require flux
 //= require eventemitter
+//= require components
 //= require app
+//= require tree .
 
 Event emitter is responsible for dispatching events from the Actions
 to the Stores. The app file will hold our initial JS code (we will split
 this up later).
+
+Lodash is a JS toolkit that provides methods to manipulate obejcts and
+collections via functions such as max, min, sort, filter, etc.
 
 Next we create app/assets/javascripts/app.js
 
@@ -475,6 +493,13 @@ var Store = new _.extend({}, EventEmitter.prototype, {
 
 });
 
+// The state of the components is managed by the store, and it is the stores
+// responsibility to notify components that there has been a change. This is
+// the purpose of the addChangeListener and removeChangeListener methods.
+// Components will add/remove themselves as listeners to the store. The store
+// uses the emitChange method for communicating changes to every one who
+// cares.
+
 // Declare our single Dispatcher
 var AppDispatcher = new Flux.Dispatcher();
 
@@ -493,20 +518,49 @@ AppDispatcher.register(function(payload) {
 -------------------------------------------------------
 013 Integrating Flux into the React Components
 -------------------------------------------------------
+// app/assets/javascripts/components/comment_list.js.jsx
 
+var CommentList = React.createClass({
+
+  // component constructor
+  componentDidMount: function() {
+    Store.addChangeListener(this._onChange);
+  },
+
+  // component destructor
+  componentWillUnmount: function() {
+    Store.removeChangeListener(this._onChange);
+  },
+
+  render: function() {
+    console.log("rendering ...");
+    return (
+      <div>
+        {Store.comments().map(function(comment) {
+          return (<Comment key={comment.id} {... comment} />);
+        })}
+      </div>
+    );
+  },
+
+  _onChange: function() {
+    // tell the component it needs to re-render itself
+    this.forceUpdate();
+  }
+});
+
+// We can then add comments through the browser JS console:
+> Actions.addComment({id: 1, body: "hello", author: "Michael"});
 // app/assets/javascripts/app.js
 
-// A common Flux implementation uses lots of constants
-// These act as a registry of the types of messages our
-// application will support. Note this is controversial.
-//
+
+// We need to add Actions to our app.js
+// app/assets/javascripts/app.js
+
 var Constants = {
   CHANGE_EVENT: 'change',
   ADD_COMMENT: 'comments.add'
 }
-
-// Implement the Store, using a library called lodash (underscore alternative).
-// We are going to extend the event emitter prototype:
 
 var Store = new _.extend({}, EventEmitter.prototype, {
   _comments: [],
@@ -542,14 +596,14 @@ AppDispatcher.register(function(payload) {
   switch(action) {
     case Constants.ADD_COMMENT:
       Store.addComment(payload.comment);
-      Store.emitChange();
+      Store.emitChange();  // tell the world there is a change
       break;
     default:
       // NO-OP
   }
 });
 
-// Actions
+// Actions (eventually this will be in a different file)
 
 // using lodash to create a new class
 var Actions = new _.extend({}, {
@@ -561,36 +615,18 @@ var Actions = new _.extend({}, {
   }
 });
 
-// app/assets/javascripts/components/comment_list.js.jsx
 
-var CommentList = React.createClass({
+-------------------------------------------------------
+014 ES6 with Ruby on Rails
+-------------------------------------------------------
 
-  // component constructor
-  componentDidMount: function() {
-    Store.addChangeListener(this._onChange);
-  },
+Here we are going to incorporate the Babel transpiler into our
+Rails project so that we can use ES6. We will use a gem that
+connects Sprockets with Babel initially.
 
-  // component destructor
-  componentWillUnmount: function() {
-    Store.removeChangeListener(this._onChange);
-  },
+We will need something like Node or therubyracer to convert the JS
+through the Ruby interpreter. Later we will do this with Node.JS
 
-  render: function() {
-    console.log("rendering ...");
-    return (
-      <div>
-        {Store.comments().map(function(comment) {
-          return (<Comment key={comment.id} {... comment} />);
-        })}
-      </div>
-    );
-  },
+First we add the sprockets-es6 gem to the Gemfile:
 
-  _onChange: function() {
-    // tell the component it needs to re-render itself
-    this.forceUpdate();
-  }
-});
-
-// We can then add comments through the browser JS console:
-> Actions.addComment({id: 1, body: "hello", author: "Michael"});
+gem 'sprockets-es6'
