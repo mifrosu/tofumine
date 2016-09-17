@@ -6,7 +6,7 @@ Using the Phusion Passenger image, we need to create our own user in the
 Dockerfile,
 and specify that it is used in the nginx config:
 
-RUN adduser --uid 1000 --disabled-password rubyapps
+RUN useradd --uid 1000 rubyapps
 
 In the container, we can then install the gems with
 bundle install --path vendor/bundle
