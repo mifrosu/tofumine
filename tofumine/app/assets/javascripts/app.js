@@ -21,7 +21,9 @@ var Store = new _.extend({}, EventEmitter.prototype, {
     return this._comments;
   },
 
-  // Flux boilerplate :
+  // Flux boilerplate (it is the store's responsibility to notify
+  // subscribed components of changes. This is done with the following
+  // methods) :
   addChangeListener: function(callback) {
     this.on(Constants.CHANGE_EVENT, callback);
   },
@@ -44,7 +46,7 @@ AppDispatcher.register(function(payload) {
   switch(action) {
     case Constants.ADD_COMMENT:
       Store.addComment(payload.comment);
-      Store.emitChange();
+      Store.emitChange();    // tell the world there is a change
       break;
     default:
       // NO-OP
