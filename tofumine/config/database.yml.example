@@ -14,8 +14,9 @@ default: &default
   encoding: utf8
   pool: 5
   username: root
-  password:
-  socket: /var/run/mysqld/mysqld.sock
+  password: blah
+  host: db_mysql
+  #socket: /var/run/mysqld/mysqld.sock
 
 development:
   <<: *default
@@ -51,4 +52,5 @@ production:
   <<: *default
   database: tofumine_production
   username: tofumine
-  password: <%= ENV['TOFUMINE_DATABASE_PASSWORD'] %>
+  password: blah
+  #password: <%= ENV['TOFUMINE_DATABASE_PASSWORD'] %>

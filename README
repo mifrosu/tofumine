@@ -1,5 +1,0 @@
-A user called rubyapps is created by the Dockerfile.
-
-This user has a UID of 1000; the idea being that the container will be
-used by the local user with that UID. It symlinks the local source directory,
-and both the docker and local user will have the same privileges in there.
