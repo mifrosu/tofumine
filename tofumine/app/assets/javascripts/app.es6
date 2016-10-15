@@ -2,7 +2,7 @@
 // These act as a registry of the types of messages our
 // application will support. Note this is controversial.
 //
-var Constants = {
+const Constants = {
   CHANGE_EVENT: 'change',
   ADD_COMMENT: 'comments.add'
 }
@@ -10,43 +10,48 @@ var Constants = {
 // Implement the Store, using a library called lodash (underscore alternative).
 // We are going to extend the event emitter prototype:
 
-var Store = new _.extend({}, EventEmitter.prototype, {
-  _comments: [],
+class Store extends EventEmitter {
+  constructor() {
+    super();
+    this._comments = []
+  }
 
-  addComment: function(comment) {
+  addComment(comment) {
     this._comments[comment.id] = comment;
-  },
+  }
 
-  comments: function() {
+  comments() {
     return this._comments;
-  },
+  }
 
   // Flux boilerplate (it is the store's responsibility to notify
   // subscribed components of changes. This is done with the following
   // methods) :
-  addChangeListener: function(callback) {
+  addChangeListener(callback) {
     this.on(Constants.CHANGE_EVENT, callback);
-  },
+  }
 
-  removeChangeListener: function(callback) {
+  removeChangeListener(callback) {
     this.removeListener(Constants.CHANGE_EVENT, callback);
-  },
+  }
 
-  emitChange: function() {
+  emitChange() {
     this.emit(Constants.CHANGE_EVENT);
   }
 
-});
+}
+
+let commentStore = new Store();
+
 
 // Declare our single Dispatcher
 var AppDispatcher = new Flux.Dispatcher();
 
-AppDispatcher.register(function(payload) {
-  var action = payload.actionType;
-  switch(action) {
+AppDispatcher.register((payload) => {
+  switch(payload.actionType) {
     case Constants.ADD_COMMENT:
-      Store.addComment(payload.comment);
-      Store.emitChange();    // tell the world there is a change
+      commentStore.addComment(payload.comment);
+      commentStore.emitChange();    // tell the world there is a change
       break;
     default:
       // NO-OP
@@ -56,11 +61,13 @@ AppDispatcher.register(function(payload) {
 // Actions
 
 // using lodash to create a new class
-var Actions = new _.extend({}, {
-  addComment: function(params) {
+class Actions {
+  addComment(params) {
     AppDispatcher.dispatch({
       actionType: Constants.ADD_COMMENT,
       comment: params
     });
   }
-});
+}
+
+let commentActions = new Actions();

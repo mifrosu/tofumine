@@ -630,3 +630,135 @@ through the Ruby interpreter. Later we will do this with Node.JS
 First we add the sprockets-es6 gem to the Gemfile:
 
 gem 'sprockets-es6'
+
+After a bundle install, we can create our first es6 file.
+The es6 suffix tells sprockets to parse the file through the Babel transpiler.
+
+// app/assets/javascripts/hello.es6
+// We won't keep this file
+let message = 'Hello';
+
+let sayHello = () => {
+  alert(message);
+}
+
+sayHello();
+
+// --------------------------
+// We shall modify our app.js file to use ES6. We move the file to app.es6:
+// app/assets/javascript/app.es6
+
+
+// A common Flux implementation uses lots of constants
+// These act as a registry of the types of messages our
+// application will support. Note this is controversial.
+//
+const Constants = {
+  CHANGE_EVENT: 'change',
+  ADD_COMMENT: 'comments.add'
+}
+
+// Implement the Store, using a library called lodash (underscore alternative).
+// We are going to extend the event emitter prototype:
+
+class Store extends EventEmitter {
+  constructor() {
+    super();
+    this._comments = []
+  }
+
+  addComment(comment) {
+    this._comments[comment.id] = comment;
+  }
+
+  comments() {
+    return this._comments;
+  }
+
+  // Flux boilerplate (it is the store's responsibility to notify
+  // subscribed components of changes. This is done with the following
+  // methods) :
+  addChangeListener(callback) {
+    this.on(Constants.CHANGE_EVENT, callback);
+  }
+
+  removeChangeListener(callback) {
+    this.removeListener(Constants.CHANGE_EVENT, callback);
+  }
+
+  emitChange() {
+    this.emit(Constants.CHANGE_EVENT);
+  }
+
+}
+
+let commentStore = new Store();
+
+
+// Declare our single Dispatcher
+let AppDispatcher = new Flux.Dispatcher();
+
+AppDispatcher.register((payload) => {
+  switch(payload.actionType) {
+    case Constants.ADD_COMMENT:
+      commentStore.addComment(payload.comment);
+      commentStore.emitChange();    // tell the world there is a change
+      break;
+    default:
+      // NO-OP
+  }
+});
+
+// Actions
+
+class Actions {
+  addComment(params) {
+    AppDispatcher.dispatch({
+      actionType: Constants.ADD_COMMENT,
+      comment: params
+    });
+  }
+}
+
+let commentActions = new Actions();
+
+//-------------------------
+We also need to modify comment_list.js.jsx to use the new
+commentStore instance:
+
+// app/assets/javascripts/components/comment_list.jsx
+
+var CommentList = React.createClass({
+
+  // component constructor
+  componentDidMount: function() {
+    commentStore.addChangeListener(this._onChange);
+  },
+
+  // component destructor
+  componentWillUnmount: function() {
+    commentStore.removeChangeListener(this._onChange);
+  },
+
+  render: function() {
+    console.log("rendering ...");
+    return (
+      <div>
+        {commentStore.comments().map(function(comment) {
+          return (<Comment key={comment.id} {... comment} />);
+        })}
+      </div>
+    );
+  },
+
+  _onChange: function() {
+    // tell the component it needs to re-render itself
+    this.forceUpdate();
+  }
+});
+
+//-------------------------
+// We can test the application still works in the browser console:
+
+// localhost:8080/restaurants/1
+// > commentActions.addComment({id: 1, author: "Michael", body: "hello"});
