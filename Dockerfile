@@ -52,8 +52,8 @@ RUN ln -s  /u/config/setup.sh /etc/my_init.d/setup
 
 RUN echo "gem: --no-ri --no-rdoc" > ~/.gemrc && gem install bundler
 
-# Add the development user
-RUN useradd --uid 1000 rubyapps
+# Add the development user with a home directory
+RUN useradd -m -d /home/rubyapps --uid 1000 rubyapps
 
 WORKDIR /u/tofumine
 
