@@ -19,11 +19,9 @@ CMD ["/sbin/my_init"]
 
 # ...put your own build instructions here...
 
-# Replace node with node 5.x
-# COPY nodesource.gpg.key /tmp/
-# RUN apt-key add /tmp/nodesource.gpg.key
-RUN echo 'deb https://deb.nodesource.com/node_5.x trusty main' > /etc/apt/sources.list.d/nodesource.list
-RUN echo 'deb-src https://deb.nodesource.com/node_5.x trusty main' >> /etc/apt/sources.list.d/nodesource.list
+# Replace node with node 6.x
+RUN echo 'deb https://deb.nodesource.com/node_6.x trusty main' > /etc/apt/sources.list.d/nodesource.list
+RUN echo 'deb-src https://deb.nodesource.com/node_6.x trusty main' >> /etc/apt/sources.list.d/nodesource.list
 
 # Upgrade the packages, keep old config
 RUN apt-get update && apt-get upgrade -y -o Dpkg::Options::="--force-confold"
